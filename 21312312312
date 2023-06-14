@@ -1,0 +1,18 @@
+#Setup envirnment
+conda create -n langchain python=3.8.1 -y
+conda activate langchain
+# 拉取仓库
+git clone https://github.com/imClumsyPanda/langchain-ChatGLM.git
+
+# 安装依赖
+cd langchain-ChatGLM
+python3 -m pip install -r requirements.txt
+python3 -m pip install gradio==3.28.3
+python3 -m pip install tabulate
+#Download models
+git lfs install
+
+git clone https://huggingface.co/THUDM/chatglm-6b-int4
+git clone https://huggingface.co/GanymedeNil/text2vec-large-chinese
+
+python3 webui.py
