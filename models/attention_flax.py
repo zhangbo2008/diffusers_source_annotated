@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+# 这里面代码 有的torch实现有的flax实现.所以2个版本.
 import flax.linen as nn
 import jax.numpy as jnp
 
