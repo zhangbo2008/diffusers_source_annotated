@@ -100,7 +100,7 @@ class VQModel(ModelMixin, ConfigMixin):
         vq_embed_dim = vq_embed_dim if vq_embed_dim is not None else latent_channels
 
         self.quant_conv = nn.Conv2d(latent_channels, vq_embed_dim, 1)
-        self.quantize = VectorQuantizer(num_vq_embeddings, vq_embed_dim, beta=0.25, remap=None, sane_index_shape=False)
+        self.quantize = VectorQuantizer(num_vq_embeddings, vq_embed_dim, beta=0.25, remap=None, sane_index_shape=False) # ============量化的核心函数!
         self.post_quant_conv = nn.Conv2d(vq_embed_dim, latent_channels, 1)
 
         # pass init params to Decoder
@@ -115,13 +115,13 @@ class VQModel(ModelMixin, ConfigMixin):
         )
 
     def encode(self, x: torch.FloatTensor, return_dict: bool = True) -> VQEncoderOutput:
-        h = self.encoder(x)
+        h = self.encoder(x) #给一个向量, 先进行正常编码, 然后编码进入量化层. 得到的结果返回即可.
         h = self.quant_conv(h)
 
         if not return_dict:
             return (h,)
 
-        return VQEncoderOutput(latents=h)
+        return VQEncoderOutput(latents=h) # 把结果写到latents字段 里面.
 
     def decode(
         self, h: torch.FloatTensor, force_not_quantize: bool = False, return_dict: bool = True
@@ -131,7 +131,7 @@ class VQModel(ModelMixin, ConfigMixin):
             quant, emb_loss, info = self.quantize(h)
         else:
             quant = h
-        quant = self.post_quant_conv(quant)
+        quant = self.post_quant_conv(quant) # 先进行反量化层,再decoder
         dec = self.decoder(quant)
 
         if not return_dict:
@@ -146,7 +146,7 @@ class VQModel(ModelMixin, ConfigMixin):
             return_dict (`bool`, *optional*, defaults to `True`):
                 Whether or not to return a [`DecoderOutput`] instead of a plain tuple.
         """
-        x = sample
+        x = sample       # 跟vae一样, 先encoder再decoder
         h = self.encode(x).latents
         dec = self.decode(h).sample
 

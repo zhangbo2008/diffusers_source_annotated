@@ -26,7 +26,7 @@ from ..configuration_utils import ConfigMixin, register_to_config
 from ..utils import BaseOutput, randn_tensor
 from .scheduling_utils import KarrasDiffusionSchedulers, SchedulerMixin
 
-
+##ddim的类.  论文: http://xxx.itp.ac.cn/pdf/2010.02502.pdf
 @dataclass
 # Copied from diffusers.schedulers.scheduling_ddpm.DDPMSchedulerOutput with DDPM->DDIM
 class DDIMSchedulerOutput(BaseOutput):
@@ -40,10 +40,10 @@ class DDIMSchedulerOutput(BaseOutput):
         pred_original_sample (`torch.FloatTensor` of shape `(batch_size, num_channels, height, width)` for images):
             The predicted denoised sample (x_{0}) based on the model output from the current timestep.
             `pred_original_sample` can be used to preview progress or for guidance.
-    """
+    """ 
 
-    prev_sample: torch.FloatTensor
-    pred_original_sample: Optional[torch.FloatTensor] = None
+    prev_sample: torch.FloatTensor   # xt-1
+    pred_original_sample: Optional[torch.FloatTensor] = None  # x0
 
 
 # Copied from diffusers.schedulers.scheduling_ddpm.betas_for_alpha_bar
@@ -69,12 +69,11 @@ def betas_for_alpha_bar(num_diffusion_timesteps, max_beta=0.999) -> torch.Tensor
         return math.cos((time_step + 0.008) / 1.008 * math.pi / 2) ** 2
 
     betas = []
-    for i in range(num_diffusion_timesteps):
+    for i in range(num_diffusion_timesteps): # 遍历时间轴.得到一个变大的数列.
         t1 = i / num_diffusion_timesteps
         t2 = (i + 1) / num_diffusion_timesteps
         betas.append(min(1 - alpha_bar(t2) / alpha_bar(t1), max_beta))
     return torch.tensor(betas, dtype=torch.float32)
-
 
 class DDIMScheduler(SchedulerMixin, ConfigMixin):
     """
@@ -128,7 +127,7 @@ class DDIMScheduler(SchedulerMixin, ConfigMixin):
         set_alpha_to_one: bool = True,
         steps_offset: int = 0,
         prediction_type: str = "epsilon",
-    ):
+    ):          # 生成系数betas
         if trained_betas is not None:
             self.betas = torch.tensor(trained_betas, dtype=torch.float32)
         elif beta_schedule == "linear":
@@ -137,7 +136,7 @@ class DDIMScheduler(SchedulerMixin, ConfigMixin):
             # this schedule is very specific to the latent diffusion model.
             self.betas = (
                 torch.linspace(beta_start**0.5, beta_end**0.5, num_train_timesteps, dtype=torch.float32) ** 2
-            )
+            )#先开根号, 然后线性切割,再平方.
         elif beta_schedule == "squaredcos_cap_v2":
             # Glide cosine schedule
             self.betas = betas_for_alpha_bar(num_train_timesteps)

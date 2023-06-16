@@ -213,7 +213,7 @@ class VectorQuantizer(nn.Module):
         self.beta = beta
         self.legacy = legacy
 
-        self.embedding = nn.Embedding(self.n_e, self.vq_embed_dim)
+        self.embedding = nn.Embedding(self.n_e, self.vq_embed_dim) #本质是embedding矩阵.
         self.embedding.weight.data.uniform_(-1.0 / self.n_e, 1.0 / self.n_e)
 
         self.remap = remap
@@ -257,26 +257,26 @@ class VectorQuantizer(nn.Module):
         back = torch.gather(used[None, :][inds.shape[0] * [0], :], 1, inds)
         return back.reshape(ishape)
 
-    def forward(self, z):
+    def forward(self, z): # 输入一个张量z, 
         # reshape z -> (batch, height, width, channel) and flatten
         z = z.permute(0, 2, 3, 1).contiguous()
         z_flattened = z.view(-1, self.vq_embed_dim)
 
         # distances from z to embeddings e_j (z - e)^2 = z^2 + e^2 - 2 e * z
-        min_encoding_indices = torch.argmin(torch.cdist(z_flattened, self.embedding.weight), dim=1)
+        min_encoding_indices = torch.argmin(torch.cdist(z_flattened, self.embedding.weight), dim=1) # z拍平跟embedding里面的最近的那个值.所计算得到的索引.
 
-        z_q = self.embedding(min_encoding_indices).view(z.shape)
+        z_q = self.embedding(min_encoding_indices).view(z.shape) # 得到最近的向量z_q
         perplexity = None
         min_encodings = None
 
         # compute loss for embedding
-        if not self.legacy:
+        if not self.legacy: # 是否修复beta系数.
             loss = self.beta * torch.mean((z_q.detach() - z) ** 2) + torch.mean((z_q - z.detach()) ** 2)
         else:
             loss = torch.mean((z_q.detach() - z) ** 2) + self.beta * torch.mean((z_q - z.detach()) ** 2)
 
         # preserve gradients
-        z_q = z + (z_q - z).detach()
+        z_q = z + (z_q - z).detach() # 当bp时候梯度算到z_q了.利用这个公式,会把梯度partial y /partial z_q.直接赋值给了partial y /partial z.  detach部分不算导数了.
 
         # reshape back to match original input shape
         z_q = z_q.permute(0, 3, 1, 2).contiguous()

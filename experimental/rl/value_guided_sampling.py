@@ -21,7 +21,7 @@ from ...pipelines import DiffusionPipeline
 from ...utils import randn_tensor
 from ...utils.dummy_pt_objects import DDPMScheduler
 
-
+#==========跟强化学习相关的.
 class ValueGuidedRLPipeline(DiffusionPipeline):
     r"""
     This model inherits from [`DiffusionPipeline`]. Check the superclass documentation for the generic methods the
@@ -64,7 +64,7 @@ class ValueGuidedRLPipeline(DiffusionPipeline):
                 self.stds[key] = self.data[key].std()
             except:  # noqa: E722
                 pass
-        self.state_dim = env.observation_space.shape[0]
+        self.state_dim = env.observation_space.shape[0] # 状态空间和action空间.
         self.action_dim = env.action_space.shape[0]
 
     def normalize(self, x_in, key):

@@ -39,7 +39,7 @@ logger = logging.get_logger(__name__)
 _re_configuration_file = re.compile(r"config\.(.*)\.json")
 
 
-class FrozenDict(OrderedDict):
+class FrozenDict(OrderedDict): # 复写了里面的del,set等方法. 全禁止了修改.
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

@@ -31,7 +31,7 @@ else:
 
 
 class AttentionBlock(nn.Module):
-    """
+    """ #空间的注意力机制.
     An attention block that allows spatial positions to attend to each other. Originally ported from here, but adapted
     to the N-d case.
     https://github.com/hojonathanho/diffusion/blob/1e0dceb3b3495bbe19116a5e1b3596cd0706c543/diffusion_tf/models/unet.py#L66.
@@ -40,7 +40,7 @@ class AttentionBlock(nn.Module):
     Parameters:
         channels (`int`): The number of channels in the input and output.
         num_head_channels (`int`, *optional*):
-            The number of channels in each head. If None, then `num_heads` = 1.
+            The number of channels in each head. If None, then `num_heads` = 1. # 模型的输出和输出channel是一样的.
         norm_num_groups (`int`, *optional*, defaults to 32): The number of groups to use for group norm.
         rescale_output_factor (`float`, *optional*, defaults to 1.0): The factor to rescale the output by.
         eps (`float`, *optional*, defaults to 1e-5): The epsilon value to use for group norm.
@@ -51,7 +51,7 @@ class AttentionBlock(nn.Module):
     def __init__(
         self,
         channels: int,
-        num_head_channels: Optional[int] = None,
+        num_head_channels: Optional[int] = None, # 表示一个head占用多少个channel
         norm_num_groups: int = 32,
         rescale_output_factor: float = 1.0,
         eps: float = 1e-5,
@@ -74,14 +74,14 @@ class AttentionBlock(nn.Module):
         self._use_memory_efficient_attention_xformers = False
         self._attention_op = None
 
-    def reshape_heads_to_batch_dim(self, tensor):
+    def reshape_heads_to_batch_dim(self, tensor): # head维度压倒batch里面
         batch_size, seq_len, dim = tensor.shape
         head_size = self.num_heads
         tensor = tensor.reshape(batch_size, seq_len, head_size, dim // head_size)
         tensor = tensor.permute(0, 2, 1, 3).reshape(batch_size * head_size, seq_len, dim // head_size)
         return tensor
 
-    def reshape_batch_dim_to_heads(self, tensor):
+    def reshape_batch_dim_to_heads(self, tensor): # batch维度压到head里面.
         batch_size, seq_len, dim = tensor.shape
         head_size = self.num_heads
         tensor = tensor.reshape(batch_size // head_size, head_size, seq_len, dim)
@@ -162,10 +162,10 @@ class AttentionBlock(nn.Module):
             hidden_states = torch.bmm(attention_probs, value_proj)
 
         # reshape hidden_states
-        hidden_states = self.reshape_batch_dim_to_heads(hidden_states)
+        hidden_states = self.reshape_batch_dim_to_heads(hidden_states)# 再形变回来
 
         # compute next hidden_states
-        hidden_states = self.proj_attn(hidden_states)
+        hidden_states = self.proj_attn(hidden_states)  # 再加上linear层.改变输出shape
 
         hidden_states = hidden_states.transpose(-1, -2).reshape(batch, channel, height, width)
 
@@ -442,7 +442,7 @@ class ApproximateGELU(nn.Module):
         return x * torch.sigmoid(1.702 * x)
 
 
-class AdaLayerNorm(nn.Module):
+class AdaLayerNorm(nn.Module): # layer norm 嵌入到时间里面.
     """
     Norm layer modified to incorporate timestep embeddings.
     """
@@ -455,9 +455,9 @@ class AdaLayerNorm(nn.Module):
         self.norm = nn.LayerNorm(embedding_dim, elementwise_affine=False)
 
     def forward(self, x, timestep):
-        emb = self.linear(self.silu(self.emb(timestep)))
-        scale, shift = torch.chunk(emb, 2)
-        x = self.norm(x) * (1 + scale) + shift
+        emb = self.linear(self.silu(self.emb(timestep)))  # 输入一个时间点, time值. 得到嵌入结果emb
+        scale, shift = torch.chunk(emb, 2) #得到一个scale和shift
+        x = self.norm(x) * (1 + scale) + shift #之后进行线性拼接.
         return x
 
 

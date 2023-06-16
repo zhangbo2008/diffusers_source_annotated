@@ -226,7 +226,7 @@ class DDPMScheduler(SchedulerMixin, ConfigMixin):
 
         return variance
 
-    def step(
+    def step(# 正向推理过程. inference过程. 从xt到x0过程.
         self,
         model_output: torch.FloatTensor,
         timestep: int,
@@ -290,7 +290,7 @@ class DDPMScheduler(SchedulerMixin, ConfigMixin):
             )
 
         # 4. Compute coefficients for pred_original_sample x_0 and current sample x_t
-        # See formula (7) from https://arxiv.org/pdf/2006.11239.pdf
+        # See formula (7) from https://arxiv.org/pdf/2006.11239.pdf #=========公式7的2个系数.
         pred_original_sample_coeff = (alpha_prod_t_prev ** (0.5) * current_beta_t) / beta_prod_t
         current_sample_coeff = current_alpha_t ** (0.5) * beta_prod_t_prev / beta_prod_t
 
@@ -298,7 +298,7 @@ class DDPMScheduler(SchedulerMixin, ConfigMixin):
         # See formula (7) from https://arxiv.org/pdf/2006.11239.pdf
         pred_prev_sample = pred_original_sample_coeff * pred_original_sample + current_sample_coeff * sample
 
-        # 6. Add noise
+        # 6. Add noise #=======先来一个正太分布的variance_noise噪音,然后乘以variance倍数加上均值即可.
         variance = 0
         if t > 0:
             device = model_output.device

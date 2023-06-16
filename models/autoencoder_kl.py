@@ -37,7 +37,7 @@ class AutoencoderKLOutput(BaseOutput):
     latent_dist: "DiagonalGaussianDistribution"
 
 
-class AutoencoderKL(ModelMixin, ConfigMixin):
+class AutoencoderKL(ModelMixin, ConfigMixin): # vae加kl散度.
     r"""Variational Autoencoder (VAE) model with KL loss from the paper Auto-Encoding Variational Bayes by Diederik P. Kingma
     and Max Welling.
 
