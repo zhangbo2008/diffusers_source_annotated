@@ -20,7 +20,7 @@ import torch
 from ...utils import randn_tensor
 from ..pipeline_utils import DiffusionPipeline, ImagePipelineOutput
 
-
+#============再看一下pipeline如何整合.
 class DDPMPipeline(DiffusionPipeline):
     r"""
     This model inherits from [`DiffusionPipeline`]. Check the superclass documentation for the generic methods the
@@ -78,17 +78,17 @@ class DDPMPipeline(DiffusionPipeline):
             image = image.to(self.device)
         else:
             image = randn_tensor(image_shape, generator=generator, device=self.device)
-
+#=============下面开始推理过程.
         # set step values
         self.scheduler.set_timesteps(num_inference_steps)
 
         for t in self.progress_bar(self.scheduler.timesteps):
             # 1. predict noise model_output
-            model_output = self.unet(image, t).sample
+            model_output = self.unet(image, t).sample # 输入是xt,输出是均值.
 
-            # 2. compute previous image: x_t -> x_t-1
+            # 2. compute previous image: x_t -> x_t-1   .  输出的image是xt-1, 输入image是xt.
             image = self.scheduler.step(model_output, t, image, generator=generator).prev_sample
-
+    #返回结果图像即可.
         image = (image / 2 + 0.5).clamp(0, 1)
         image = image.cpu().permute(0, 2, 3, 1).numpy()
         if output_type == "pil":

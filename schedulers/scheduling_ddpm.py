@@ -270,10 +270,10 @@ class DDPMScheduler(SchedulerMixin, ConfigMixin):
         current_beta_t = 1 - current_alpha_t
 
         # 2. compute predicted original sample from predicted noise also called
-        # "predicted x_0" of formula (15) from https://arxiv.org/pdf/2006.11239.pdf
-        if self.config.prediction_type == "epsilon":
+        # "predicted x_0" of formula (15) from https://arxiv.org/pdf/2006.11239.pdf   # 看模型预测的是什么.
+        if self.config.prediction_type == "epsilon":  # 如果模型预测的是均值,那么我们就用15公式.一般都是走这个模式. sample是xt, 输出是均值.
             pred_original_sample = (sample - beta_prod_t ** (0.5) * model_output) / alpha_prod_t ** (0.5)
-        elif self.config.prediction_type == "sample":
+        elif self.config.prediction_type == "sample":  #如果模型预测的是x0
             pred_original_sample = model_output
         elif self.config.prediction_type == "v_prediction":
             pred_original_sample = (alpha_prod_t**0.5) * sample - (beta_prod_t**0.5) * model_output

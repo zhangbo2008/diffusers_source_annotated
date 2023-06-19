@@ -94,7 +94,7 @@ class DDIMPipeline(DiffusionPipeline):
 
         # set step values
         self.scheduler.set_timesteps(num_inference_steps)
-
+#=======pipeline部分跟ddpm都一样, 核心就在scheduler里面是各个区别.
         for t in self.progress_bar(self.scheduler.timesteps):
             # 1. predict noise model_output
             model_output = self.unet(image, t).sample
